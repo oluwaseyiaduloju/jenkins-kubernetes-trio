@@ -31,7 +31,11 @@ pipeline {
                 sh "kubectl get svc flask-app"
                 sh "kubectl get svc nginx-service"
                 sh "sleep 100"
-                sh "kubectl delete -f ."
+
+                sh "sed -e 's,{{DATABASE}},'${DB_NAME}',g;' -e 's,{{PASSWORD}},'${DB_PWD}',g;' secret.yaml | kubectl delete -f -"
+                sh "kubectl delete -f nginx.yaml"
+                sh "kubectl delete -f flask-app.yaml"
+
             }
         }
     
