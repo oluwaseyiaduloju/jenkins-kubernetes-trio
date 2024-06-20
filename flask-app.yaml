@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-app
+spec:
+  type: ClusterIP
+  selector:
+    app: flask
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+  labels:
+    app: flask
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: flask
+  strategy:
+    rollingUpdate:
+      maxSurge: 20%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask-container
+        image: gcr.io/lbg-mea-build-c19/trio-app:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MYSQLPW
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: MYSQL_ROOT_PASSWORD 
+        - name: DBNAME
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: MYSQL_DATABASE
